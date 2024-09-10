@@ -1,0 +1,22 @@
+name: Test Docker Image
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+
+jobs:
+
+  test-ros-noetic-docker:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Build the Docker image
+      uses: docker/build-push-action@v6
+      with:
+        context: docker/ros-noetic
+        push: false
