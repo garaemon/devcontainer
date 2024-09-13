@@ -21,7 +21,7 @@ jobs:
         context: docker/ros-noetic
         push: false
 
-  test-ros-noetic-docker:
+  test-ubuntu-focal-docker:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
