@@ -3,7 +3,9 @@ name: Deploy Docker Image
 on:
   push:
     branches: [ "main" ]
-
+  schedule:
+    # Everyday 8am
+    - cron: "0 8 * * *"
 jobs:
 
   deploy-ros-noetic-docker:
