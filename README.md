@@ -4,6 +4,7 @@
 ```
 docker build docker/ros-noetic -t ghcr.io/garaemon/ros-noetic:latest
 docker build docker/ubuntu-focal -t ghcr.io/garaemon/ubuntu-focal:latest
+docker build docker/ubuntu-noble -t ghcr.io/garaemon/ubuntu-noble:latest
 ```
 ## First time you make an image
 
