@@ -12,3 +12,4 @@ docker build docker/ubuntu-noble -t ghcr.io/garaemon/ubuntu-noble:latest
 2. Push it to ghcr.io
 3. Connect the image and the repository on github.com
 4. Make it public by changing package visibility on github.com from Package settings
+5. Allow admin permission from the repository on the Package settings view
