@@ -16,7 +16,14 @@ RUN apt-get update && apt-get install -y \
   git \
   gh \
   zsh \
+  sudo \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
 
 # There is ubuntu user. We don't need to make it.
+# The docker image contains `%sudo   ALL=(ALL:ALL) ALL` in /etc/sudoers.
+# However, it requires password and ubuntu user does not have password.
+# To allow ubuntu user to use sudo without password, add the following line to /etc/sudoers.
+RUN echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
+USER ubuntu
+WORKDIR /home/ubuntu
