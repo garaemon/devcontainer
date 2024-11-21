@@ -23,5 +23,9 @@ RUN apt-get update && apt-get install -y \
 # Create ubuntu user because ros:noetic uses root user.
 # TODO: Do we need to specify user id?
 RUN useradd -rm -d /home/ubuntu -s /bin/bash -g root -G sudo -u 1001 ubuntu
+# The docker image contains `%sudo   ALL=(ALL:ALL) ALL` in /etc/sudoers.
+# However, it requires password and ubuntu user does not have password.
+# To allow ubuntu user to use sudo without password, add the following line to /etc/sudoers.
+RUN echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
 USER ubuntu
 WORKDIR /home/ubuntu
