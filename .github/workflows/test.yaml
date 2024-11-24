@@ -25,3 +25,7 @@ jobs:
         platforms: linux/amd64, linux/arm64
         context: docker/${{ matrix.context }}
         push: false
+
+    - name: Test if it can use sudo without password
+      run:
+        docker run --rm -it ghcr.io/garaemon/${{ matrix.context }}:latest sudo ls /
