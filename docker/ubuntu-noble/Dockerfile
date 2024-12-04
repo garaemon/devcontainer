@@ -3,7 +3,7 @@ FROM ubuntu:noble
 
 # Set up the apt repository to install gh.
 # See https://github.com/cli/cli/blob/trunk/docs/install_linux.md#debian-ubuntu-linux-raspberry-pi-os-apt
-RUN apt-get update && apt-get install wget -y  --no-install-recommends \
+RUN apt-get update && apt-get install wget ca-certificates -y --no-install-recommends \
 	&& mkdir -p -m 755 /etc/apt/keyrings \
 	&& wget -qO- https://cli.github.com/packages/githubcli-archive-keyring.gpg | tee /etc/apt/keyrings/githubcli-archive-keyring.gpg > /dev/null \
 	&& chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg \
