@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        context: ["ros-noetic", "ubuntu-focal", "ubuntu-noble"]
+        context: ["ros-noetic", "ros-humble", "ubuntu-focal", "ubuntu-noble"]
 
     steps:
     - uses: actions/checkout@v4
