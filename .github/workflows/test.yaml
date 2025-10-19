@@ -22,9 +22,11 @@ jobs:
     - name: Build the Docker image
       uses: docker/build-push-action@v6
       with:
-        platforms: linux/amd64, linux/arm64
+        platforms: linux/amd64
         context: docker/${{ matrix.context }}
         push: false
+        load: true
+        tags: ghcr.io/garaemon/${{ matrix.context }}:latest
 
     - name: Test if it can use sudo without password
       shell: 'script -q -e -c "bash {0}"'  # To enable tty for sudo
