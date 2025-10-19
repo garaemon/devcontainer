@@ -13,6 +13,7 @@ RUN apt-get update && apt-get install wget -y --no-install-recommends \
 
 # Install additional apt packages
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3-colcon-core \
     python3-colcon-common-extensions \
     git \
     gh \
