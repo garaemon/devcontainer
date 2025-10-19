@@ -2,7 +2,11 @@ pipeline {
     agent any
 
     environment {
+        // Enable Docker BuildKit for improved build performance and features
         DOCKER_BUILDKIT = '1'
+
+        // Target platforms for multi-architecture builds
+        // Modify this variable to change build platforms globally
         BUILD_PLATFORMS = 'linux/amd64,linux/arm64'
     }
 
@@ -13,9 +17,10 @@ pipeline {
                     echo 'Setting up Docker Buildx for multi-architecture builds'
                     sh '''
                         # Create a new builder instance if it doesn't exist
+                        # Buildx is required for cross-platform image builds
                         docker buildx create --name multiarch-builder --use || docker buildx use multiarch-builder || true
 
-                        # Bootstrap the builder
+                        # Bootstrap the builder to ensure it's ready
                         docker buildx inspect --bootstrap
                     '''
                 }
@@ -27,13 +32,14 @@ pipeline {
                 script {
                     echo 'Cleaning up project-specific Docker images and build cache'
                     sh '''
-                        # Remove only project-specific images
+                        # Remove only project-specific images to avoid affecting other projects
+                        # This ensures we build from scratch without using old cached layers
                         docker images --filter "reference=ghcr.io/garaemon/*" -q | xargs -r docker rmi -f || true
 
                         # Remove dangling images (untagged intermediate images)
                         docker images --filter "dangling=true" -q | xargs -r docker rmi || true
 
-                        # Clean build cache for buildkit
+                        # Clean build cache for buildkit to force fresh builds
                         docker builder prune -af || true
                     '''
                 }
@@ -47,17 +53,22 @@ pipeline {
                         script {
                             echo 'Building ros-noetic image for amd64 and arm64 from scratch'
                             sh '''
-                                # Determine host platform
+                                # Determine host platform for loading the test image
                                 HOST_PLATFORM="linux/$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/')"
 
-                                # Build for both platforms (stored in build cache)
+                                # Step 1: Build for both platforms (stored in build cache)
+                                # --no-cache: Build from scratch without using cached layers
+                                # --pull: Always pull the latest upstream base images (e.g., Ubuntu, ROS)
+                                # --platform: Build for multiple architectures
                                 docker buildx build --no-cache \
                                     --pull \
                                     --platform ${BUILD_PLATFORMS} \
                                     -t ghcr.io/garaemon/ros-noetic:latest \
                                     docker/ros-noetic
 
-                                # Load the host architecture image for testing
+                                # Step 2: Load the host architecture image for testing
+                                # Cannot use --load with multiple platforms, so we load only host arch
+                                # This reuses the cache from Step 1, making it fast
                                 docker buildx build \
                                     --platform ${HOST_PLATFORM} \
                                     -t ghcr.io/garaemon/ros-noetic:latest \
@@ -73,17 +84,22 @@ pipeline {
                         script {
                             echo 'Building ros-humble image for amd64 and arm64 from scratch'
                             sh '''
-                                # Determine host platform
+                                # Determine host platform for loading the test image
                                 HOST_PLATFORM="linux/$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/')"
 
-                                # Build for both platforms (stored in build cache)
+                                # Step 1: Build for both platforms (stored in build cache)
+                                # --no-cache: Build from scratch without using cached layers
+                                # --pull: Always pull the latest upstream base images (e.g., Ubuntu, ROS)
+                                # --platform: Build for multiple architectures
                                 docker buildx build --no-cache \
                                     --pull \
                                     --platform ${BUILD_PLATFORMS} \
                                     -t ghcr.io/garaemon/ros-humble:latest \
                                     docker/ros-humble
 
-                                # Load the host architecture image for testing
+                                # Step 2: Load the host architecture image for testing
+                                # Cannot use --load with multiple platforms, so we load only host arch
+                                # This reuses the cache from Step 1, making it fast
                                 docker buildx build \
                                     --platform ${HOST_PLATFORM} \
                                     -t ghcr.io/garaemon/ros-humble:latest \
@@ -99,17 +115,22 @@ pipeline {
                         script {
                             echo 'Building ubuntu-focal image for amd64 and arm64 from scratch'
                             sh '''
-                                # Determine host platform
+                                # Determine host platform for loading the test image
                                 HOST_PLATFORM="linux/$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/')"
 
-                                # Build for both platforms (stored in build cache)
+                                # Step 1: Build for both platforms (stored in build cache)
+                                # --no-cache: Build from scratch without using cached layers
+                                # --pull: Always pull the latest upstream base images (e.g., Ubuntu, ROS)
+                                # --platform: Build for multiple architectures
                                 docker buildx build --no-cache \
                                     --pull \
                                     --platform ${BUILD_PLATFORMS} \
                                     -t ghcr.io/garaemon/ubuntu-focal:latest \
                                     docker/ubuntu-focal
 
-                                # Load the host architecture image for testing
+                                # Step 2: Load the host architecture image for testing
+                                # Cannot use --load with multiple platforms, so we load only host arch
+                                # This reuses the cache from Step 1, making it fast
                                 docker buildx build \
                                     --platform ${HOST_PLATFORM} \
                                     -t ghcr.io/garaemon/ubuntu-focal:latest \
@@ -125,17 +146,22 @@ pipeline {
                         script {
                             echo 'Building ubuntu-noble image for amd64 and arm64 from scratch'
                             sh '''
-                                # Determine host platform
+                                # Determine host platform for loading the test image
                                 HOST_PLATFORM="linux/$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/')"
 
-                                # Build for both platforms (stored in build cache)
+                                # Step 1: Build for both platforms (stored in build cache)
+                                # --no-cache: Build from scratch without using cached layers
+                                # --pull: Always pull the latest upstream base images (e.g., Ubuntu, ROS)
+                                # --platform: Build for multiple architectures
                                 docker buildx build --no-cache \
                                     --pull \
                                     --platform ${BUILD_PLATFORMS} \
                                     -t ghcr.io/garaemon/ubuntu-noble:latest \
                                     docker/ubuntu-noble
 
-                                # Load the host architecture image for testing
+                                # Step 2: Load the host architecture image for testing
+                                # Cannot use --load with multiple platforms, so we load only host arch
+                                # This reuses the cache from Step 1, making it fast
                                 docker buildx build \
                                     --platform ${HOST_PLATFORM} \
                                     -t ghcr.io/garaemon/ubuntu-noble:latest \
@@ -154,6 +180,7 @@ pipeline {
                     steps {
                         script {
                             echo 'Testing ros-noetic image'
+                            // Verify that sudo works without password in the container
                             sh 'docker run --rm ghcr.io/garaemon/ros-noetic:latest sudo ls /'
                         }
                     }
@@ -163,6 +190,7 @@ pipeline {
                     steps {
                         script {
                             echo 'Testing ros-humble image'
+                            // Verify that sudo works without password in the container
                             sh 'docker run --rm ghcr.io/garaemon/ros-humble:latest sudo ls /'
                         }
                     }
@@ -172,6 +200,7 @@ pipeline {
                     steps {
                         script {
                             echo 'Testing ubuntu-focal image'
+                            // Verify that sudo works without password in the container
                             sh 'docker run --rm ghcr.io/garaemon/ubuntu-focal:latest sudo ls /'
                         }
                     }
@@ -181,6 +210,7 @@ pipeline {
                     steps {
                         script {
                             echo 'Testing ubuntu-noble image'
+                            // Verify that sudo works without password in the container
                             sh 'docker run --rm ghcr.io/garaemon/ubuntu-noble:latest sudo ls /'
                         }
                     }
