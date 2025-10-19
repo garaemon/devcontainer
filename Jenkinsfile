@@ -3,6 +3,7 @@ pipeline {
 
     environment {
         DOCKER_BUILDKIT = '1'
+        BUILD_PLATFORMS = 'linux/amd64,linux/arm64'
     }
 
     stages {
@@ -46,16 +47,19 @@ pipeline {
                         script {
                             echo 'Building ros-noetic image for amd64 and arm64 from scratch'
                             sh '''
+                                # Determine host platform
+                                HOST_PLATFORM="linux/$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/')"
+
                                 # Build for both platforms (stored in build cache)
                                 docker buildx build --no-cache \
                                     --pull \
-                                    --platform linux/amd64,linux/arm64 \
+                                    --platform ${BUILD_PLATFORMS} \
                                     -t ghcr.io/garaemon/ros-noetic:latest \
                                     docker/ros-noetic
 
                                 # Load the host architecture image for testing
                                 docker buildx build \
-                                    --platform linux/$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/') \
+                                    --platform ${HOST_PLATFORM} \
                                     -t ghcr.io/garaemon/ros-noetic:latest \
                                     --load \
                                     docker/ros-noetic
@@ -69,16 +73,19 @@ pipeline {
                         script {
                             echo 'Building ros-humble image for amd64 and arm64 from scratch'
                             sh '''
+                                # Determine host platform
+                                HOST_PLATFORM="linux/$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/')"
+
                                 # Build for both platforms (stored in build cache)
                                 docker buildx build --no-cache \
                                     --pull \
-                                    --platform linux/amd64,linux/arm64 \
+                                    --platform ${BUILD_PLATFORMS} \
                                     -t ghcr.io/garaemon/ros-humble:latest \
                                     docker/ros-humble
 
                                 # Load the host architecture image for testing
                                 docker buildx build \
-                                    --platform linux/$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/') \
+                                    --platform ${HOST_PLATFORM} \
                                     -t ghcr.io/garaemon/ros-humble:latest \
                                     --load \
                                     docker/ros-humble
@@ -92,16 +99,19 @@ pipeline {
                         script {
                             echo 'Building ubuntu-focal image for amd64 and arm64 from scratch'
                             sh '''
+                                # Determine host platform
+                                HOST_PLATFORM="linux/$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/')"
+
                                 # Build for both platforms (stored in build cache)
                                 docker buildx build --no-cache \
                                     --pull \
-                                    --platform linux/amd64,linux/arm64 \
+                                    --platform ${BUILD_PLATFORMS} \
                                     -t ghcr.io/garaemon/ubuntu-focal:latest \
                                     docker/ubuntu-focal
 
                                 # Load the host architecture image for testing
                                 docker buildx build \
-                                    --platform linux/$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/') \
+                                    --platform ${HOST_PLATFORM} \
                                     -t ghcr.io/garaemon/ubuntu-focal:latest \
                                     --load \
                                     docker/ubuntu-focal
@@ -115,16 +125,19 @@ pipeline {
                         script {
                             echo 'Building ubuntu-noble image for amd64 and arm64 from scratch'
                             sh '''
+                                # Determine host platform
+                                HOST_PLATFORM="linux/$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/')"
+
                                 # Build for both platforms (stored in build cache)
                                 docker buildx build --no-cache \
                                     --pull \
-                                    --platform linux/amd64,linux/arm64 \
+                                    --platform ${BUILD_PLATFORMS} \
                                     -t ghcr.io/garaemon/ubuntu-noble:latest \
                                     docker/ubuntu-noble
 
                                 # Load the host architecture image for testing
                                 docker buildx build \
-                                    --platform linux/$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/') \
+                                    --platform ${HOST_PLATFORM} \
                                     -t ghcr.io/garaemon/ubuntu-noble:latest \
                                     --load \
                                     docker/ubuntu-noble
