@@ -6,6 +6,21 @@ pipeline {
     }
 
     stages {
+        stage('Setup Buildx') {
+            steps {
+                script {
+                    echo 'Setting up Docker Buildx for multi-architecture builds'
+                    sh '''
+                        # Create a new builder instance if it doesn't exist
+                        docker buildx create --name multiarch-builder --use || docker buildx use multiarch-builder || true
+
+                        # Bootstrap the builder
+                        docker buildx inspect --bootstrap
+                    '''
+                }
+            }
+        }
+
         stage('Cleanup Docker') {
             steps {
                 script {
@@ -29,11 +44,20 @@ pipeline {
                 stage('Build ros-noetic') {
                     steps {
                         script {
-                            echo 'Building ros-noetic image from scratch'
+                            echo 'Building ros-noetic image for amd64 and arm64 from scratch'
                             sh '''
-                                docker build --no-cache \
+                                # Build for both platforms (stored in build cache)
+                                docker buildx build --no-cache \
                                     --pull \
+                                    --platform linux/amd64,linux/arm64 \
                                     -t ghcr.io/garaemon/ros-noetic:latest \
+                                    docker/ros-noetic
+
+                                # Load the host architecture image for testing
+                                docker buildx build \
+                                    --platform linux/$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/') \
+                                    -t ghcr.io/garaemon/ros-noetic:latest \
+                                    --load \
                                     docker/ros-noetic
                             '''
                         }
@@ -43,11 +67,20 @@ pipeline {
                 stage('Build ros-humble') {
                     steps {
                         script {
-                            echo 'Building ros-humble image from scratch'
+                            echo 'Building ros-humble image for amd64 and arm64 from scratch'
                             sh '''
-                                docker build --no-cache \
+                                # Build for both platforms (stored in build cache)
+                                docker buildx build --no-cache \
                                     --pull \
+                                    --platform linux/amd64,linux/arm64 \
                                     -t ghcr.io/garaemon/ros-humble:latest \
+                                    docker/ros-humble
+
+                                # Load the host architecture image for testing
+                                docker buildx build \
+                                    --platform linux/$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/') \
+                                    -t ghcr.io/garaemon/ros-humble:latest \
+                                    --load \
                                     docker/ros-humble
                             '''
                         }
@@ -57,11 +90,20 @@ pipeline {
                 stage('Build ubuntu-focal') {
                     steps {
                         script {
-                            echo 'Building ubuntu-focal image from scratch'
+                            echo 'Building ubuntu-focal image for amd64 and arm64 from scratch'
                             sh '''
-                                docker build --no-cache \
+                                # Build for both platforms (stored in build cache)
+                                docker buildx build --no-cache \
                                     --pull \
+                                    --platform linux/amd64,linux/arm64 \
                                     -t ghcr.io/garaemon/ubuntu-focal:latest \
+                                    docker/ubuntu-focal
+
+                                # Load the host architecture image for testing
+                                docker buildx build \
+                                    --platform linux/$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/') \
+                                    -t ghcr.io/garaemon/ubuntu-focal:latest \
+                                    --load \
                                     docker/ubuntu-focal
                             '''
                         }
@@ -71,11 +113,20 @@ pipeline {
                 stage('Build ubuntu-noble') {
                     steps {
                         script {
-                            echo 'Building ubuntu-noble image from scratch'
+                            echo 'Building ubuntu-noble image for amd64 and arm64 from scratch'
                             sh '''
-                                docker build --no-cache \
+                                # Build for both platforms (stored in build cache)
+                                docker buildx build --no-cache \
                                     --pull \
+                                    --platform linux/amd64,linux/arm64 \
                                     -t ghcr.io/garaemon/ubuntu-noble:latest \
+                                    docker/ubuntu-noble
+
+                                # Load the host architecture image for testing
+                                docker buildx build \
+                                    --platform linux/$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/') \
+                                    -t ghcr.io/garaemon/ubuntu-noble:latest \
+                                    --load \
                                     docker/ubuntu-noble
                             '''
                         }
