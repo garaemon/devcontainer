@@ -11,7 +11,23 @@ docker: not found
 
 This happens because the Jenkins container doesn't have access to Docker by default.
 
-## Solution: Docker-outside-of-Docker (DooD)
+## Recommended Solution
+
+**For production or repeated use, we recommend using the pre-configured custom Jenkins image in the `jenkins/` directory.**
+
+See [jenkins/README.md](jenkins/README.md) for a ready-to-use setup with Docker Compose.
+
+Quick start:
+```bash
+cd jenkins
+docker-compose up -d
+```
+
+## Alternative Solutions
+
+If you prefer to configure an existing Jenkins instance or need a quick fix, use one of the methods below.
+
+### Solution: Docker-outside-of-Docker (DooD)
 
 The recommended approach is to use Docker-outside-of-Docker (DooD), where the Jenkins container uses the host's Docker daemon.
 
@@ -209,3 +225,63 @@ The pipeline will:
 - Clean up old images
 - Build all images for amd64 and arm64
 - Test the built images
+
+## Best Practices: Managing Additional Software
+
+### Recommended Approach: Custom Docker Image
+
+When you need to install additional tools in Jenkins, **always use a custom Docker image**. This approach:
+
+1. **Is reproducible**: Same environment every time
+2. **Is version-controlled**: Track changes in your Dockerfile
+3. **Is faster**: No need to reinstall on every container restart
+4. **Is portable**: Easy to deploy across different environments
+
+**Example**: See the `jenkins/Dockerfile` in this repository.
+
+To add tools, edit the Dockerfile:
+```dockerfile
+# Add your tools here
+RUN apt-get update && \
+    apt-get install -y \
+        nodejs \
+        npm \
+        python3 \
+        python3-pip \
+        jq \
+        curl && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+```
+
+Then rebuild:
+```bash
+cd jenkins
+docker-compose build --no-cache
+docker-compose up -d
+```
+
+### Temporary Approach: docker exec (Not Recommended)
+
+Only use this for testing or emergency fixes:
+
+```bash
+docker exec -u root <jenkins-container> apt-get update
+docker exec -u root <jenkins-container> apt-get install -y <package-name>
+```
+
+**Drawbacks**:
+- Changes are lost when container restarts
+- Not version-controlled
+- Not reproducible
+- Manual process
+
+### Comparison
+
+| Method | Reproducible | Persistent | Version Control | Best For |
+|--------|--------------|------------|-----------------|----------|
+| Custom Image | ✅ | ✅ | ✅ | Production, repeated use |
+| docker exec | ❌ | ❌ | ❌ | Testing, emergency fixes |
+| Docker Compose command | ⚠️ | ⚠️ | ✅ | Quick prototyping |
+
+**Always prefer custom Docker images for any production or long-term use.**
