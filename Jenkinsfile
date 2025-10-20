@@ -1,3 +1,26 @@
+/*
+ * Prerequisites for running this Jenkinsfile:
+ *
+ * This pipeline requires Docker and Docker Buildx to be available in the Jenkins agent.
+ *
+ * If running Jenkins in Docker, you need to configure Docker-outside-of-Docker (DooD):
+ *
+ * 1. Mount the Docker socket when starting Jenkins container:
+ *    docker run -v /var/run/docker.sock:/var/run/docker.sock jenkins/jenkins:lts
+ *
+ * 2. Install Docker CLI in the Jenkins container:
+ *    docker exec -u root <jenkins-container> sh -c "apt-get update && apt-get install -y docker.io"
+ *
+ * 3. Grant Jenkins user access to Docker socket:
+ *    docker exec -u root <jenkins-container> usermod -aG docker jenkins
+ *    docker exec -u root <jenkins-container> chmod 666 /var/run/docker.sock
+ *
+ * Alternatively, use a Jenkins image with Docker pre-installed, such as:
+ *    docker:dind or custom images with Docker client included
+ *
+ * See JENKINS_SETUP.md for detailed setup instructions.
+ */
+
 // Function to build multi-architecture Docker images
 def buildMultiArchImage(String imageName, String contextPath) {
     echo "Building ${imageName} image for amd64 and arm64 from scratch"
