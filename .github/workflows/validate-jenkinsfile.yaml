@@ -1,0 +1,88 @@
+name: Validate Jenkinsfile
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'Jenkinsfile'
+      - '.github/workflows/validate-jenkinsfile.yaml'
+  pull_request:
+    paths:
+      - 'Jenkinsfile'
+      - '.github/workflows/validate-jenkinsfile.yaml'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Check Jenkinsfile Structure
+      run: |
+        echo "Checking Jenkinsfile structure..."
+
+        # Check for required elements
+        if ! grep -q "pipeline {" Jenkinsfile; then
+          echo "Error: Missing 'pipeline {' block"
+          exit 1
+        fi
+
+        if ! grep -q "agent" Jenkinsfile; then
+          echo "Error: Missing 'agent' declaration"
+          exit 1
+        fi
+
+        if ! grep -q "stages {" Jenkinsfile; then
+          echo "Error: Missing 'stages {' block"
+          exit 1
+        fi
+
+        # Check for stage definitions
+        if ! grep -q "stage(" Jenkinsfile; then
+          echo "Error: No stages defined"
+          exit 1
+        fi
+
+        # Check for steps
+        if ! grep -q "steps {" Jenkinsfile; then
+          echo "Error: No steps defined in stages"
+          exit 1
+        fi
+
+        echo "Basic Jenkinsfile structure validation passed"
+
+    - name: Lint Jenkinsfile
+      run: |
+        echo "Running basic lint checks..."
+
+        # Check for trailing whitespace
+        if grep -n '[[:space:]]$' Jenkinsfile; then
+          echo "Error: Trailing whitespace found in Jenkinsfile"
+          exit 1
+        fi
+
+        # Check for consistent indentation (4 spaces)
+        if grep -P '^\t' Jenkinsfile; then
+          echo "Error: Tabs found in Jenkinsfile (should use spaces)"
+          exit 1
+        fi
+
+        echo "Lint checks passed"
+
+    - name: Validate Jenkinsfile Syntax
+      run: |
+        echo "Performing syntax validation on Jenkinsfile..."
+
+        # Check balanced braces
+        OPEN_BRACES=$(grep -o '{' Jenkinsfile | wc -l)
+        CLOSE_BRACES=$(grep -o '}' Jenkinsfile | wc -l)
+
+        if [ "$OPEN_BRACES" -ne "$CLOSE_BRACES" ]; then
+          echo "Error: Unbalanced braces in Jenkinsfile"
+          echo "Open braces: $OPEN_BRACES, Close braces: $CLOSE_BRACES"
+          exit 1
+        fi
+
+        echo "Brace balance check passed"
+        echo "Jenkinsfile validation completed successfully"
