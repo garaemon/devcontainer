@@ -56,6 +56,24 @@ def testImage(String imageName) {
     sh "docker run --rm ghcr.io/garaemon/${imageName}:latest sudo ls /"
 }
 
+// Function to push multi-architecture Docker images to GitHub Packages
+def pushMultiArchImage(String imageName) {
+    echo "Pushing ${imageName} image to GitHub Packages"
+    withCredentials([string(credentialsId: 'github-token', variable: 'GITHUB_TOKEN')]) {
+        sh """
+            # Login to GitHub Container Registry
+            echo \${GITHUB_TOKEN} | docker login ghcr.io -u garaemon --password-stdin
+
+            # Push multi-architecture image to GitHub Packages
+            docker buildx build \\
+                --platform \${BUILD_PLATFORMS} \\
+                -t ghcr.io/garaemon/${imageName}:latest \\
+                --push \\
+                docker/${imageName}
+        """
+    }
+}
+
 pipeline {
     agent any
 
@@ -175,6 +193,42 @@ pipeline {
                 }
             }
         }
+
+        stage('Push Images to GitHub Packages') {
+            parallel {
+                stage('Push ros-noetic') {
+                    steps {
+                        script {
+                            pushMultiArchImage('ros-noetic')
+                        }
+                    }
+                }
+
+                stage('Push ros-humble') {
+                    steps {
+                        script {
+                            pushMultiArchImage('ros-humble')
+                        }
+                    }
+                }
+
+                stage('Push ubuntu-focal') {
+                    steps {
+                        script {
+                            pushMultiArchImage('ubuntu-focal')
+                        }
+                    }
+                }
+
+                stage('Push ubuntu-noble') {
+                    steps {
+                        script {
+                            pushMultiArchImage('ubuntu-noble')
+                        }
+                    }
+                }
+            }
+        }
     }
 
     post {
@@ -185,7 +239,7 @@ pipeline {
         }
         success {
             script {
-                echo 'All Docker images built and tested successfully'
+                echo 'All Docker images built, tested, and pushed successfully'
             }
         }
         failure {
