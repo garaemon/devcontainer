@@ -57,6 +57,9 @@ def testImage(String imageName) {
 }
 
 // Function to push multi-architecture Docker images to GitHub Packages
+// GHCR_PUSH_TOKEN requires the following GitHub Personal Access Token permissions:
+//   - write:packages (required for pushing packages)
+//   - read:packages (required for pulling packages)
 def pushMultiArchImage(String imageName) {
     echo "Pushing ${imageName} image to GitHub Packages"
     withCredentials([string(credentialsId: 'github-token', variable: 'GHCR_PUSH_TOKEN')]) {
