@@ -59,18 +59,23 @@ def testImage(String imageName) {
 // Function to push multi-architecture Docker images to GitHub Packages
 def pushMultiArchImage(String imageName) {
     echo "Pushing ${imageName} image to GitHub Packages"
-    withCredentials([string(credentialsId: 'github-token', variable: 'GITHUB_TOKEN')]) {
-        sh """
-            # Login to GitHub Container Registry
-            echo \${GITHUB_TOKEN} | docker login ghcr.io -u garaemon --password-stdin
+    withCredentials([string(credentialsId: 'github-token', variable: 'GHCR_PUSH_TOKEN')]) {
+        try {
+            sh """
+                # Login to GitHub Container Registry
+                echo \${GHCR_PUSH_TOKEN} | docker login ghcr.io -u garaemon --password-stdin
 
-            # Push multi-architecture image to GitHub Packages
-            docker buildx build \\
-                --platform \${BUILD_PLATFORMS} \\
-                -t ghcr.io/garaemon/${imageName}:latest \\
-                --push \\
-                docker/${imageName}
-        """
+                # Push multi-architecture image to GitHub Packages
+                docker buildx build \\
+                    --platform \${BUILD_PLATFORMS} \\
+                    -t ghcr.io/garaemon/${imageName}:latest \\
+                    --push \\
+                    docker/${imageName}
+            """
+        } finally {
+            // Always logout to remove credentials from Docker config
+            sh 'docker logout ghcr.io || true'
+        }
     }
 }
 
@@ -195,6 +200,9 @@ pipeline {
         }
 
         stage('Push Images to GitHub Packages') {
+            when {
+                branch 'main'
+            }
             parallel {
                 stage('Push ros-noetic') {
                     steps {
