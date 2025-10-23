@@ -56,6 +56,32 @@ def testImage(String imageName) {
     sh "docker run --rm ghcr.io/garaemon/${imageName}:latest sudo ls /"
 }
 
+// Function to push multi-architecture Docker images to GitHub Packages
+// GHCR_PUSH_TOKEN requires the following GitHub Personal Access Token permissions:
+//   - write:packages (required for pushing packages)
+//   - read:packages (required for pulling packages)
+def pushMultiArchImage(String imageName) {
+    echo "Pushing ${imageName} image to GitHub Packages"
+    withCredentials([string(credentialsId: 'ghcr-push-token', variable: 'GHCR_PUSH_TOKEN')]) {
+        try {
+            sh """
+                # Login to GitHub Container Registry
+                echo \${GHCR_PUSH_TOKEN} | docker login ghcr.io -u garaemon --password-stdin
+
+                # Push multi-architecture image to GitHub Packages
+                docker buildx build \\
+                    --platform \${BUILD_PLATFORMS} \\
+                    -t ghcr.io/garaemon/${imageName}:latest \\
+                    --push \\
+                    docker/${imageName}
+            """
+        } finally {
+            // Always logout to remove credentials from Docker config
+            sh 'docker logout ghcr.io || true'
+        }
+    }
+}
+
 pipeline {
     agent any
 
@@ -175,6 +201,45 @@ pipeline {
                 }
             }
         }
+
+        stage('Push Images to GitHub Packages') {
+            when {
+                branch 'main'
+            }
+            parallel {
+                stage('Push ros-noetic') {
+                    steps {
+                        script {
+                            pushMultiArchImage('ros-noetic')
+                        }
+                    }
+                }
+
+                stage('Push ros-humble') {
+                    steps {
+                        script {
+                            pushMultiArchImage('ros-humble')
+                        }
+                    }
+                }
+
+                stage('Push ubuntu-focal') {
+                    steps {
+                        script {
+                            pushMultiArchImage('ubuntu-focal')
+                        }
+                    }
+                }
+
+                stage('Push ubuntu-noble') {
+                    steps {
+                        script {
+                            pushMultiArchImage('ubuntu-noble')
+                        }
+                    }
+                }
+            }
+        }
     }
 
     post {
@@ -185,7 +250,7 @@ pipeline {
         }
         success {
             script {
-                echo 'All Docker images built and tested successfully'
+                echo 'All Docker images built, tested, and pushed successfully'
             }
         }
         failure {
