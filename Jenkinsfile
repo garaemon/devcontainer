@@ -62,7 +62,7 @@ def testImage(String imageName) {
 //   - read:packages (required for pulling packages)
 def pushMultiArchImage(String imageName) {
     echo "Pushing ${imageName} image to GitHub Packages"
-    withCredentials([string(credentialsId: 'github-token', variable: 'GHCR_PUSH_TOKEN')]) {
+    withCredentials([string(credentialsId: 'ghcr-push-token', variable: 'GHCR_PUSH_TOKEN')]) {
         try {
             sh """
                 # Login to GitHub Container Registry
