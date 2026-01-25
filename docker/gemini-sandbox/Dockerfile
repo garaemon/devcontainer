@@ -1,8 +1,11 @@
 ARG PLAYWRIGHT_VERSION=1.49.1
+ARG GEMINI_VERSION=0.21.0
+
 FROM mcr.microsoft.com/playwright:v${PLAYWRIGHT_VERSION}-noble
 
-ARG PLAYWRIGHT_VERSION=1.49.1
-ARG GEMINI_VERSION=0.21.0
+# Re-declare ARGs to make them available after FROM
+ARG PLAYWRIGHT_VERSION
+ARG GEMINI_VERSION
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -35,4 +38,4 @@ RUN if ! id -u ubuntu > /dev/null 2>&1; then useradd -m -s /bin/bash ubuntu; fi 
 USER ubuntu
 WORKDIR /home/ubuntu
 
-CMD ["zsh"]
+CMD ["gemini"]
