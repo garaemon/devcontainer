@@ -3,37 +3,37 @@ FROM ubuntu:noble
 
 # Set up the apt repository to install gh.
 # See https://github.com/cli/cli/blob/trunk/docs/install_linux.md#debian-ubuntu-linux-raspberry-pi-os-apt
-RUN apt-get update && apt-get install wget ca-certificates -y --no-install-recommends 
-	&& mkdir -p -m 755 /etc/apt/keyrings 
-	&& wget -qO- https://cli.github.com/packages/githubcli-archive-keyring.gpg | tee /etc/apt/keyrings/githubcli-archive-keyring.gpg > /dev/null 
-	&& chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg 
-	&& echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | tee /etc/apt/sources.list.d/github-cli.list > /dev/null 
-  && apt-get clean 
+RUN apt-get update && apt-get install wget ca-certificates -y --no-install-recommends \
+	&& mkdir -p -m 755 /etc/apt/keyrings \
+	&& wget -qO- https://cli.github.com/packages/githubcli-archive-keyring.gpg | tee /etc/apt/keyrings/githubcli-archive-keyring.gpg > /dev/null \
+	&& chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg \
+	&& echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
+  && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
 
   # Install additional apt packages
-RUN apt-get update && apt-get install -y  --no-install-recommends 
-  git 
-  gh 
-  zsh 
-  sudo 
-  curl 
-  unzip 
-  && apt-get clean 
+RUN apt-get update && apt-get install -y  --no-install-recommends \
+  git \
+  gh \
+  zsh \
+  sudo \
+  curl \
+  unzip \
+  && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
 
 # Install Node.js and npm (required for Playwright)
-RUN curl -fsSL https://deb.nodesource.com/setup_lts.x | bash - 
-    && apt-get update && apt-get install -y nodejs 
-    && apt-get clean 
+RUN curl -fsSL https://deb.nodesource.com/setup_lts.x | bash - \
+    && apt-get update && apt-get install -y nodejs \
+    && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Playwright globally and install browsers/dependencies
 # Set PLAYWRIGHT_BROWSERS_PATH to a shared location so it persists and is accessible
 ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
-RUN npm install -g playwright 
-    && npx playwright install --with-deps 
-    && mkdir -p /ms-playwright 
+RUN npm install -g playwright \
+    && npx playwright install --with-deps \
+    && mkdir -p /ms-playwright \
     && chmod -R 777 /ms-playwright
 
 # There is ubuntu user. We don't need to make it.
