@@ -26,7 +26,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Playwright and Gemini SDK
-RUN npm install -g playwright@${PLAYWRIGHT_VERSION} @google/generative-ai@${GEMINI_VERSION}
+RUN npm install -g playwright@${PLAYWRIGHT_VERSION} @google/generative-ai@${GEMINI_VERSION} @google/gemini-cli
 
 # Setup ubuntu user
 RUN if ! id -u ubuntu > /dev/null 2>&1; then useradd -m -s /bin/bash ubuntu; fi \

@@ -38,8 +38,7 @@ jobs:
             gemini-sandbox \
             /bin/zsh -c 'export NODE_PATH=$(npm root -g) && node /tests/test-gemini-sdk.js'
 
-      - name: Run Gemini CLI Test inside container (Expected to fail if CLI is missing)
-        continue-on-error: true
+      - name: Run Gemini CLI Test inside container
         run: |
           docker run --rm \
             -v ${{ github.workspace }}/docker/gemini-sandbox/tests:/tests \
