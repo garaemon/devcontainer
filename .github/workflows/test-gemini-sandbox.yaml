@@ -1,0 +1,32 @@
+name: Test Gemini Sandbox Docker Image
+
+on:
+  push:
+    paths:
+      - 'docker/gemini-sandbox/**'
+      - '.github/workflows/test-gemini-sandbox.yaml'
+  pull_request:
+    paths:
+      - 'docker/gemini-sandbox/**'
+      - '.github/workflows/test-gemini-sandbox.yaml'
+  workflow_dispatch:
+
+jobs:
+  test-docker-build-and-run:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: |
+          docker build -t gemini-sandbox -f docker/gemini-sandbox/Dockerfile .
+
+      - name: Run Playwright Test inside container
+        run: |
+          # Mount the test script into the container and execute it
+          # explicitly setting NODE_PATH to find global modules
+          docker run --rm \
+            -v ${{ github.workspace }}/docker/gemini-sandbox/tests:/tests \
+            gemini-sandbox \
+            /bin/zsh -c 'export NODE_PATH=$(npm root -g) && node /tests/test-playwright.js'

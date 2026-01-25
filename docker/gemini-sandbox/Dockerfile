@@ -1,6 +1,7 @@
-ARG PLAYWRIGHT_VERSION=1.48.2
+ARG PLAYWRIGHT_VERSION=1.49.1
 FROM mcr.microsoft.com/playwright:v${PLAYWRIGHT_VERSION}-noble
 
+ARG PLAYWRIGHT_VERSION=1.49.1
 ARG GEMINI_VERSION=0.21.0
 
 ENV DEBIAN_FRONTEND=noninteractive
@@ -24,11 +25,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-RUN npm install -g @google/generative-ai@${GEMINI_VERSION}
+# Install Playwright and Gemini SDK
+RUN npm install -g playwright@${PLAYWRIGHT_VERSION} @google/generative-ai@${GEMINI_VERSION}
 
 # Setup ubuntu user
-# The base image might not have 'ubuntu' user, or it might be different.
-# We ensure 'ubuntu' exists and has sudo access.
 RUN if ! id -u ubuntu > /dev/null 2>&1; then useradd -m -s /bin/bash ubuntu; fi \
     && echo 'ubuntu ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
 
